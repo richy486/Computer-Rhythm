@@ -49,7 +49,8 @@ const SoundDesignerForm: React.FC<SoundDesignerFormProps> = ({
     setIsGenerating(true);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || process.env.API_KEY });
+      const apiKey = (typeof process !== 'undefined' ? (process.env.GEMINI_API_KEY || process.env.API_KEY) : null) || (import.meta as any).env?.VITE_GEMINI_API_KEY;
+      const ai = new GoogleGenAI({ apiKey });
       
       const currentContext = {
         name,

@@ -47,7 +47,8 @@ const PatternGenerator: React.FC<PatternGeneratorProps> = ({
     setStatus('Analyzing style...');
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || process.env.API_KEY });
+      const apiKey = (typeof process !== 'undefined' ? (process.env.GEMINI_API_KEY || process.env.API_KEY) : null) || (import.meta as any).env?.VITE_GEMINI_API_KEY;
+      const ai = new GoogleGenAI({ apiKey });
       
       const statusUpdates = [
         'Evaluating existing kit...',
