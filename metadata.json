@@ -1,0 +1,5 @@
+{
+  "name": "Computer Rhythm",
+  "description": "A high-performance 16x8 drum sequencer with MIDI support, real-time audio synthesis, and a sleek dark studio interface.",
+  "requestFramePermissions": []
+}
