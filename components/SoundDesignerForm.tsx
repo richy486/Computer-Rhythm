@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Music, Waves, Activity, Zap, Layers, Sparkles, Loader2, Info, FileAudio, Plus } from 'lucide-react';
+import { Music, Waves, Activity, Zap, Layers, Sparkles, Loader2, Info, FileAudio, Plus, Wind, Repeat, Flame, Cpu, Filter } from 'lucide-react';
 import { SynthType, DrumParams, DrumKit } from '../types';
 import { GoogleGenAI, Type } from "@google/genai";
 import { isGeminiEnabled } from '../src/utils/featureFlags';
@@ -105,8 +105,15 @@ const SoundDesignerForm: React.FC<SoundDesignerFormProps> = ({
              - "Punchy" means very fast Attack and short Decay.
              - "Ethereal" means longer Attack and longer Release.
              - "Bass" means lowering the Pitch parameter.
-          3. Always return a creative but fitting 'name' and 'emoji'.
-          4. If the user provides a current state, make subtle relative adjustments unless they ask for something entirely new.`,
+          3. Map descriptors to Effects:
+             - "Spacey", "Atmospheric", "Large room" -> Increase 'reverb'.
+             - "Echo", "Rhythmic repeats" -> Increase 'delay'.
+             - "Gritty", "Aggressive", "Crunchy" -> Increase 'distortion'.
+             - "Lo-fi", "8-bit", "Digital crunch" -> Increase 'bitcrush'.
+             - "Muffled", "Dark", "Underwater" -> Lower 'filterCutoff'.
+             - "Bright", "Sharp", "Piercing" -> Increase 'filterCutoff'.
+          4. Always return a creative but fitting 'name' and 'emoji'.
+          5. If the user provides a current state, make subtle relative adjustments unless they ask for something entirely new.`,
           responseMimeType: "application/json",
           responseSchema: {
             type: Type.OBJECT,
@@ -115,7 +122,7 @@ const SoundDesignerForm: React.FC<SoundDesignerFormProps> = ({
               emoji: { type: Type.STRING, description: "A single fitting emoji" },
               synthType: { 
                 type: Type.STRING, 
-                enum: ['membrane', 'noise', 'metal', 'am', 'fm', 'duo'],
+                enum: ['membrane', 'noise', 'metal', 'am', 'fm', 'duo', 'sample'],
                 description: "The synthesis engine type" 
               },
               params: {
@@ -125,7 +132,12 @@ const SoundDesignerForm: React.FC<SoundDesignerFormProps> = ({
                   attack: { type: Type.NUMBER, description: "Value from 0.001 to 0.5" },
                   decay: { type: Type.NUMBER, description: "Value from 0.01 to 1.5" },
                   sustain: { type: Type.NUMBER, description: "Value from 0.0 to 1.0" },
-                  release: { type: Type.NUMBER, description: "Value from 0.01 to 2.0" }
+                  release: { type: Type.NUMBER, description: "Value from 0.01 to 2.0" },
+                  reverb: { type: Type.NUMBER, description: "Wet amount from 0.0 to 1.0" },
+                  delay: { type: Type.NUMBER, description: "Wet amount from 0.0 to 1.0" },
+                  distortion: { type: Type.NUMBER, description: "Amount from 0.0 to 1.0" },
+                  bitcrush: { type: Type.NUMBER, description: "Amount from 0.0 to 1.0" },
+                  filterCutoff: { type: Type.NUMBER, description: "Normalized frequency from 0.0 to 1.0" }
                 },
                 required: ["pitch", "attack", "decay", "sustain", "release"]
               }
@@ -335,6 +347,58 @@ const SoundDesignerForm: React.FC<SoundDesignerFormProps> = ({
               </div>
               <input type="range" min="0.01" max="2" step="0.01" value={params.release} onChange={e => updateParam('release', parseFloat(e.target.value))} className="w-full h-1 bg-slate-800 rounded-full appearance-none accent-slate-400" />
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Effects Section */}
+      <div className="space-y-4">
+        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Audio Effects</label>
+        
+        <div className="grid grid-cols-2 gap-x-4 gap-y-4">
+          {/* Reverb */}
+          <div className="space-y-1">
+            <div className="flex justify-between text-[9px] font-mono text-indigo-400 uppercase">
+              <span className="flex items-center gap-1"><Wind size={10} /> Reverb</span> 
+              <span>{Math.round((params.reverb || 0) * 100)}%</span>
+            </div>
+            <input type="range" min="0" max="1" step="0.01" value={params.reverb || 0} onChange={e => updateParam('reverb', parseFloat(e.target.value))} className="w-full h-1 bg-slate-800 rounded-full appearance-none accent-indigo-500" />
+          </div>
+
+          {/* Delay */}
+          <div className="space-y-1">
+            <div className="flex justify-between text-[9px] font-mono text-blue-400 uppercase">
+              <span className="flex items-center gap-1"><Repeat size={10} /> Delay</span> 
+              <span>{Math.round((params.delay || 0) * 100)}%</span>
+            </div>
+            <input type="range" min="0" max="1" step="0.01" value={params.delay || 0} onChange={e => updateParam('delay', parseFloat(e.target.value))} className="w-full h-1 bg-slate-800 rounded-full appearance-none accent-blue-500" />
+          </div>
+
+          {/* Distortion */}
+          <div className="space-y-1">
+            <div className="flex justify-between text-[9px] font-mono text-red-400 uppercase">
+              <span className="flex items-center gap-1"><Flame size={10} /> Distortion</span> 
+              <span>{Math.round((params.distortion || 0) * 100)}%</span>
+            </div>
+            <input type="range" min="0" max="1" step="0.01" value={params.distortion || 0} onChange={e => updateParam('distortion', parseFloat(e.target.value))} className="w-full h-1 bg-slate-800 rounded-full appearance-none accent-red-500" />
+          </div>
+
+          {/* Bitcrush */}
+          <div className="space-y-1">
+            <div className="flex justify-between text-[9px] font-mono text-emerald-400 uppercase">
+              <span className="flex items-center gap-1"><Cpu size={10} /> Bitcrush</span> 
+              <span>{Math.round((params.bitcrush || 0) * 100)}%</span>
+            </div>
+            <input type="range" min="0" max="1" step="0.01" value={params.bitcrush || 0} onChange={e => updateParam('bitcrush', parseFloat(e.target.value))} className="w-full h-1 bg-slate-800 rounded-full appearance-none accent-emerald-500" />
+          </div>
+
+          {/* Filter */}
+          <div className="col-span-2 space-y-1">
+            <div className="flex justify-between text-[9px] font-mono text-amber-400 uppercase">
+              <span className="flex items-center gap-1"><Filter size={10} /> Filter Cutoff</span> 
+              <span>{Math.round((params.filterCutoff || 1) * 100)}%</span>
+            </div>
+            <input type="range" min="0" max="1" step="0.01" value={params.filterCutoff ?? 1} onChange={e => updateParam('filterCutoff', parseFloat(e.target.value))} className="w-full h-1 bg-slate-800 rounded-full appearance-none accent-amber-500" />
           </div>
         </div>
       </div>

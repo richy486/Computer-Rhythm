@@ -5,6 +5,14 @@ import { SynthType } from '../types';
 class AudioService {
   // Use 'any' as 'Tone.Instrument' is not exported as a member in some Tone.js versions/builds
   private synths: Record<string, any> = {};
+  private effectChains: Record<string, {
+    reverb: Tone.Reverb;
+    delay: Tone.FeedbackDelay;
+    distortion: Tone.Distortion;
+    bitcrusher: Tone.BitCrusher;
+    filter: Tone.Filter;
+    output: Tone.Gain;
+  }> = {};
   private initialized = false;
   private mainOutput: Tone.Gain | null = null;
   private recorder: Tone.Recorder | null = null;
@@ -35,14 +43,14 @@ class AudioService {
       this.synths[id].dispose();
     }
 
+    const chain = this.getOrCreateChain(id);
+
     return new Promise<void>((resolve, reject) => {
       const player = new Tone.Player({
         url: url,
         autostart: false,
         onload: () => {
-          if (this.mainOutput) {
-            player.connect(this.mainOutput);
-          }
+          player.connect(chain.filter);
           this.synths[id] = player;
           resolve();
         },
@@ -54,10 +62,41 @@ class AudioService {
     });
   }
 
+  private getOrCreateChain(id: string) {
+    if (this.effectChains[id]) return this.effectChains[id];
+
+    const reverb = new Tone.Reverb({ decay: 1.5 });
+    reverb.wet.value = 0;
+    const delay = new Tone.FeedbackDelay({ delayTime: '8n', feedback: 0.3 });
+    delay.wet.value = 0;
+    const distortion = new Tone.Distortion({ distortion: 0.4 });
+    distortion.wet.value = 0;
+    const bitcrusher = new Tone.BitCrusher({ bits: 8 });
+    bitcrusher.wet.value = 0;
+    const filter = new Tone.Filter({ type: 'lowpass', frequency: 20000 });
+    const output = new Tone.Gain(1);
+
+    // Chain: Filter -> BitCrusher -> Distortion -> Delay -> Reverb -> Output
+    filter.connect(bitcrusher);
+    bitcrusher.connect(distortion);
+    distortion.connect(delay);
+    delay.connect(reverb);
+    reverb.connect(output);
+
+    if (this.mainOutput) {
+      output.connect(this.mainOutput);
+    }
+
+    this.effectChains[id] = { reverb, delay, distortion, bitcrusher, filter, output };
+    return this.effectChains[id];
+  }
+
   createSynth(id: string, type: SynthType, options: any = {}) {
     if (this.synths[id]) {
       this.synths[id].dispose();
     }
+
+    const chain = this.getOrCreateChain(id);
 
     // Use 'any' as 'Tone.Instrument' is not exported as a member in some Tone.js versions/builds
     let synth: any;
@@ -90,9 +129,7 @@ class AudioService {
         synth = new Tone.MembraneSynth(options);
     }
 
-    if (this.mainOutput) {
-      synth.connect(this.mainOutput);
-    }
+    synth.connect(chain.filter);
     this.synths[id] = synth;
     return synth;
   }
@@ -119,6 +156,30 @@ class AudioService {
         synth.playbackRate = 0.5 + (value * 1.5);
       } else if ('frequency' in synth && synth.frequency instanceof Tone.Signal) {
         synth.frequency.value = 40 + (value * 2000);
+      }
+    } else if (param === 'reverb') {
+      const chain = this.effectChains[id];
+      if (chain) chain.reverb.wet.value = value;
+    } else if (param === 'delay') {
+      const chain = this.effectChains[id];
+      if (chain) chain.delay.wet.value = value;
+    } else if (param === 'distortion') {
+      const chain = this.effectChains[id];
+      if (chain) chain.distortion.wet.value = value;
+    } else if (param === 'bitcrush') {
+      const chain = this.effectChains[id];
+      if (chain) {
+        chain.bitcrusher.wet.value = value > 0 ? 1 : 0;
+        if (value > 0) {
+          // Map 0-1 to 8-1 bits (lower is more crushed)
+          chain.bitcrusher.bits.value = Math.max(1, Math.floor(8 - (value * 7)));
+        }
+      }
+    } else if (param === 'filterCutoff') {
+      const chain = this.effectChains[id];
+      if (chain) {
+        // Map 0-1 to 100Hz - 20000Hz
+        chain.filter.frequency.value = 100 + (Math.pow(value, 2) * 19900);
       }
     }
   }

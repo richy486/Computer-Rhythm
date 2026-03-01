@@ -17,6 +17,12 @@ export interface DrumParams {
   attack?: number;
   sustain?: number;
   release?: number;
+  // Effects
+  reverb?: number;
+  delay?: number;
+  distortion?: number;
+  bitcrush?: number;
+  filterCutoff?: number;
 }
 
 export type SequencerGrid = number[][]; 

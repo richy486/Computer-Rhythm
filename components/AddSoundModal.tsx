@@ -39,7 +39,12 @@ const AddSoundModal: React.FC<AddSoundModalProps> = ({ onClose, onAdd }) => {
       attack: getRandom(0.001, 0.05),
       decay: getRandom(0.05, 0.6),
       sustain: getRandom(0, 0.4),
-      release: getRandom(0.05, 0.8)
+      release: getRandom(0.05, 0.8),
+      reverb: Math.random() < 0.2 ? getRandom(0, 0.4) : 0,
+      delay: Math.random() < 0.1 ? getRandom(0, 0.3) : 0,
+      distortion: Math.random() < 0.1 ? getRandom(0, 0.5) : 0,
+      bitcrush: Math.random() < 0.05 ? getRandom(0, 0.4) : 0,
+      filterCutoff: Math.random() < 0.2 ? getRandom(0.2, 1) : 1
     });
   }, []);
 
@@ -87,7 +92,12 @@ const AddSoundModal: React.FC<AddSoundModalProps> = ({ onClose, onAdd }) => {
       attack: Math.round(getRandom(0.001, 0.05) * 1000) / 1000,
       decay: Math.round(getRandom(0.05, 0.6) * 100) / 100,
       sustain: Math.round(getRandom(0, 0.4) * 100) / 100,
-      release: Math.round(getRandom(0.05, 0.8) * 100) / 100
+      release: Math.round(getRandom(0.05, 0.8) * 100) / 100,
+      reverb: Math.random() < 0.2 ? Math.round(getRandom(0, 0.4) * 100) / 100 : 0,
+      delay: Math.random() < 0.1 ? Math.round(getRandom(0, 0.3) * 100) / 100 : 0,
+      distortion: Math.random() < 0.1 ? Math.round(getRandom(0, 0.5) * 100) / 100 : 0,
+      bitcrush: Math.random() < 0.05 ? Math.round(getRandom(0, 0.4) * 100) / 100 : 0,
+      filterCutoff: Math.random() < 0.2 ? Math.round(getRandom(0.2, 1) * 100) / 100 : 1
     });
   };
 

@@ -177,6 +177,11 @@ const App: React.FC = () => {
         audioService.updateParameter(drum.id, 'sustain', p.sustain || 0);
         audioService.updateParameter(drum.id, 'release', p.release || 0.1);
         audioService.updateParameter(drum.id, 'pitch', p.pitch);
+        if (p.reverb !== undefined) audioService.updateParameter(drum.id, 'reverb', p.reverb);
+        if (p.delay !== undefined) audioService.updateParameter(drum.id, 'delay', p.delay);
+        if (p.distortion !== undefined) audioService.updateParameter(drum.id, 'distortion', p.distortion);
+        if (p.bitcrush !== undefined) audioService.updateParameter(drum.id, 'bitcrush', p.bitcrush);
+        if (p.filterCutoff !== undefined) audioService.updateParameter(drum.id, 'filterCutoff', p.filterCutoff);
       }
     });
 
@@ -403,6 +408,13 @@ const App: React.FC = () => {
     if (p.attack !== undefined) audioService.updateParameter(drumKit[i].id, 'attack', p.attack);
     if (p.sustain !== undefined) audioService.updateParameter(drumKit[i].id, 'sustain', p.sustain);
     if (p.release !== undefined) audioService.updateParameter(drumKit[i].id, 'release', p.release);
+    
+    // Effects
+    if (p.reverb !== undefined) audioService.updateParameter(drumKit[i].id, 'reverb', p.reverb);
+    if (p.delay !== undefined) audioService.updateParameter(drumKit[i].id, 'delay', p.delay);
+    if (p.distortion !== undefined) audioService.updateParameter(drumKit[i].id, 'distortion', p.distortion);
+    if (p.bitcrush !== undefined) audioService.updateParameter(drumKit[i].id, 'bitcrush', p.bitcrush);
+    if (p.filterCutoff !== undefined) audioService.updateParameter(drumKit[i].id, 'filterCutoff', p.filterCutoff);
   };
 
   const handleDrumMetadataUpdate = (id: string, updates: Partial<DrumKit>) => {
@@ -494,6 +506,11 @@ const App: React.FC = () => {
         });
       }
       audioService.updateParameter(kit.id, 'pitch', params.pitch);
+      if (params.reverb !== undefined) audioService.updateParameter(kit.id, 'reverb', params.reverb);
+      if (params.delay !== undefined) audioService.updateParameter(kit.id, 'delay', params.delay);
+      if (params.distortion !== undefined) audioService.updateParameter(kit.id, 'distortion', params.distortion);
+      if (params.bitcrush !== undefined) audioService.updateParameter(kit.id, 'bitcrush', params.bitcrush);
+      if (params.filterCutoff !== undefined) audioService.updateParameter(kit.id, 'filterCutoff', params.filterCutoff);
     }
     
     setDrumKit(prev => [...prev, kit]);

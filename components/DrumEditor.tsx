@@ -56,6 +56,11 @@ const DrumEditor: React.FC<DrumEditorProps> = ({ drum, params, onClose, onChange
       decay: Math.round((Math.random() * 1.49 + 0.01) * 100) / 100,
       sustain: Math.round(Math.random() * 100) / 100,
       release: Math.round((Math.random() * 1.99 + 0.01) * 100) / 100,
+      reverb: Math.random() < 0.3 ? Math.round(Math.random() * 50) / 100 : 0,
+      delay: Math.random() < 0.2 ? Math.round(Math.random() * 40) / 100 : 0,
+      distortion: Math.random() < 0.2 ? Math.round(Math.random() * 60) / 100 : 0,
+      bitcrush: Math.random() < 0.1 ? Math.round(Math.random() * 50) / 100 : 0,
+      filterCutoff: Math.random() < 0.3 ? Math.round(Math.random() * 100) / 100 : 1,
     };
 
     const randomName = pickRandom(RANDOM_NAMES);
