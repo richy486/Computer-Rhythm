@@ -245,6 +245,10 @@ const App: React.FC = () => {
   useEffect(() => { if (isEngineStarted) audioService.setBPM(bpm); }, [bpm, isEngineStarted]);
   useEffect(() => { if (isEngineStarted) audioService.setVolume(volume); }, [volume, isEngineStarted]);
 
+  const updateCurrentPage = useCallback((update: (p: Page) => Page) => {
+    setPages(prev => prev.map((p, i) => i === activePageIndex ? update(p) : p));
+  }, [activePageIndex]);
+
   const handleTogglePlay = useCallback(async () => {
     if (Tone.getContext().state !== 'running') await Tone.start();
     if (!isPlaying) { 
@@ -258,6 +262,19 @@ const App: React.FC = () => {
     }
     setIsPlaying(!isPlaying);
   }, [isPlaying, isRecording]);
+
+  const handleResetPlayhead = useCallback(() => {
+    Tone.getTransport().stop();
+    localStepRef.current = 0;
+    setAbsoluteStep(0);
+    setIsPlaying(false);
+    if (isRecording) handleStopRecording();
+    
+    updateCurrentPage(p => ({
+      ...p,
+      rowOffsets: p.rowOffsets.map(() => 0)
+    }));
+  }, [isRecording, updateCurrentPage]);
 
   const handleStartRecording = async () => {
     if (!isEngineStarted) await handleStartEngine();
@@ -305,10 +322,6 @@ const App: React.FC = () => {
     } finally {
       setIsExporting(false);
     }
-  };
-
-  const updateCurrentPage = (update: (p: Page) => Page) => {
-    setPages(prev => prev.map((p, i) => i === activePageIndex ? update(p) : p));
   };
 
   const handleToggleCell = (row: number, col: number) => {
@@ -875,6 +888,7 @@ const App: React.FC = () => {
                  setCustomLoopsInput(loopsToRecord.toString());
                  setIsCustomLoopsModalOpen(true);
                }}
+               onResetPlayhead={handleResetPlayhead}
              />
              {isGeminiEnabled() && (
                <PatternGenerator 

@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Play, Square, Volume2, Radio, Cable, Disc, Download, Loader2 } from 'lucide-react';
+import { Play, Square, Volume2, Radio, Cable, Disc, Download, Loader2, RotateCcw } from 'lucide-react';
 
 interface ControlsProps {
   isPlaying: boolean;
@@ -26,6 +26,7 @@ interface ControlsProps {
   onLoopsToRecordChange: (loops: number) => void;
   onLoopModeChange: (mode: 'auto' | 'custom') => void;
   onCustomLoopsClick: () => void;
+  onResetPlayhead: () => void;
 }
 
 const Controls: React.FC<ControlsProps> = ({ 
@@ -50,7 +51,8 @@ const Controls: React.FC<ControlsProps> = ({
   onStopRecording,
   onLoopsToRecordChange,
   onLoopModeChange,
-  onCustomLoopsClick
+  onCustomLoopsClick,
+  onResetPlayhead
 }) => {
   return (
     <div className="bg-slate-900/90 backdrop-blur-xl p-6 rounded-2xl border border-slate-800 flex flex-wrap items-center justify-between gap-6 shadow-2xl">
@@ -67,6 +69,14 @@ const Controls: React.FC<ControlsProps> = ({
           `}
         >
           {isPlaying ? <Square size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-1" />}
+        </button>
+
+        <button
+          onClick={onResetPlayhead}
+          className="w-10 h-10 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-all border border-slate-700/50"
+          title="Reset to start"
+        >
+          <RotateCcw size={18} />
         </button>
 
         <div className="flex flex-col">
