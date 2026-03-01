@@ -1,10 +1,13 @@
 
 import React from 'react';
 import * as Tone from 'tone';
-import { X, Play } from 'lucide-react';
+import { X, Play, Shuffle } from 'lucide-react';
 import { DrumKit, DrumParams, SynthType } from '../types';
-import SoundDesignerForm from './SoundDesignerForm';
+import SoundDesignerForm, { SYNTH_TYPES } from './SoundDesignerForm';
 import { audioService } from '../services/audioService';
+import { RANDOM_NAMES, RANDOM_EMOJIS } from '../constants';
+
+const pickRandom = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
 
 interface DrumEditorProps {
   drum: DrumKit;
@@ -32,6 +35,38 @@ const DrumEditor: React.FC<DrumEditorProps> = ({ drum, params, onClose, onChange
       }
     });
     audioService.updateParameter(drum.id, 'pitch', params.pitch);
+  };
+
+  const handleRandomize = () => {
+    const randomSynth = pickRandom(SYNTH_TYPES).id;
+    const randomParams: DrumParams = {
+      pitch: Math.round(Math.random() * 200) / 100,
+      attack: Math.round((Math.random() * 0.499 + 0.001) * 1000) / 1000,
+      decay: Math.round((Math.random() * 1.49 + 0.01) * 100) / 100,
+      sustain: Math.round(Math.random() * 100) / 100,
+      release: Math.round((Math.random() * 1.99 + 0.01) * 100) / 100,
+    };
+
+    const randomName = pickRandom(RANDOM_NAMES);
+    const randomEmoji = pickRandom(RANDOM_EMOJIS);
+
+    onDrumUpdate(drum.id, { 
+      synthType: randomSynth,
+      name: randomName,
+      emoji: randomEmoji
+    });
+    onChange(randomParams);
+    
+    // Recreate synth for the new type
+    audioService.createSynth(drum.id, randomSynth, {
+      envelope: {
+        attack: randomParams.attack,
+        decay: randomParams.decay,
+        sustain: randomParams.sustain,
+        release: randomParams.release
+      }
+    });
+    audioService.updateParameter(drum.id, 'pitch', randomParams.pitch);
   };
 
   return (
@@ -62,12 +97,19 @@ const DrumEditor: React.FC<DrumEditorProps> = ({ drum, params, onClose, onChange
           onParamsChange={onChange}
         />
 
-        <div className="pt-6 border-t border-slate-800">
+        <div className="pt-6 border-t border-slate-800 flex gap-2">
+           <button 
+            onClick={handleRandomize}
+            className="flex-grow py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-95 border border-slate-700"
+            title="Randomize all parameters"
+          >
+            <Shuffle size={12} /> Randomize
+          </button>
            <button 
             onClick={handleTestSound}
-            className="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-95 border border-slate-700"
+            className="flex-grow py-3 bg-orange-500 hover:bg-orange-400 text-white rounded-xl font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all active:scale-95 shadow-lg shadow-orange-500/20"
           >
-            <Play size={12} fill="currentColor" /> Preview Changes
+            <Play size={12} fill="currentColor" /> Preview
           </button>
         </div>
 

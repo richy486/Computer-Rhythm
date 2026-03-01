@@ -1,28 +1,19 @@
 
 import React, { useState, useEffect } from 'react';
 import * as Tone from 'tone';
-import { X, Play } from 'lucide-react';
+import { X, Play, Shuffle } from 'lucide-react';
 import { SynthType, DrumKit, DrumParams } from '../types';
 import { audioService } from '../services/audioService';
-import SoundDesignerForm from './SoundDesignerForm';
+import SoundDesignerForm, { SYNTH_TYPES } from './SoundDesignerForm';
+import { RANDOM_NAMES, RANDOM_EMOJIS } from '../constants';
 
 interface AddSoundModalProps {
   onClose: () => void;
   onAdd: (kit: DrumKit, params: DrumParams) => void;
 }
 
-const RANDOM_NAMES = [
-  "Cyber Kick", "Neon Snap", "Void Thud", "Plasma Pop", "Echo Strike", 
-  "Pulse Wave", "Ghost Click", "Rust Hit", "Velvet Clap", "Glitch Zap",
-  "Solar Flare", "Deep Space", "Quartz Hit", "Carbon Snap", "Ion Blast"
-];
-
-const RANDOM_EMOJIS = ["⚡", "🥁", "🔮", "🧨", "🛸", "👾", "🌌", "💎", "🌋", "🌀", "🛰️", "🛸", "☄️", "🌈", "🔥"];
-
-const SYNTH_OPTIONS: SynthType[] = ['membrane', 'noise', 'metal', 'am', 'fm', 'duo'];
-
-const getRandom = (min: number, max: number) => Math.random() * (max - min) + min;
 const pickRandom = <T,>(arr: T[]): T => arr[Math.floor(Math.random() * arr.length)];
+const getRandom = (min: number, max: number) => Math.random() * (max - min) + min;
 
 const AddSoundModal: React.FC<AddSoundModalProps> = ({ onClose, onAdd }) => {
   // Initialize state with random values
@@ -41,7 +32,7 @@ const AddSoundModal: React.FC<AddSoundModalProps> = ({ onClose, onAdd }) => {
   useEffect(() => {
     setName(pickRandom(RANDOM_NAMES));
     setEmoji(pickRandom(RANDOM_EMOJIS));
-    setSynthType(pickRandom(SYNTH_OPTIONS));
+    setSynthType(pickRandom(SYNTH_TYPES).id);
     setParams({
       pitch: getRandom(0.4, 1.6),
       attack: getRandom(0.001, 0.05),
@@ -80,6 +71,19 @@ const AddSoundModal: React.FC<AddSoundModalProps> = ({ onClose, onAdd }) => {
     onAdd(newKit, params);
   };
 
+  const handleRandomize = () => {
+    setName(pickRandom(RANDOM_NAMES));
+    setEmoji(pickRandom(RANDOM_EMOJIS));
+    setSynthType(pickRandom(SYNTH_TYPES).id);
+    setParams({
+      pitch: Math.round(getRandom(0.4, 1.6) * 100) / 100,
+      attack: Math.round(getRandom(0.001, 0.05) * 1000) / 1000,
+      decay: Math.round(getRandom(0.05, 0.6) * 100) / 100,
+      sustain: Math.round(getRandom(0, 0.4) * 100) / 100,
+      release: Math.round(getRandom(0.05, 0.8) * 100) / 100
+    });
+  };
+
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-[#0b1121]/90 backdrop-blur-xl animate-in fade-in duration-300">
       <div className="bg-slate-900 border border-slate-700/50 rounded-[2.5rem] p-8 max-w-2xl w-full shadow-2xl relative overflow-hidden">
@@ -109,16 +113,23 @@ const AddSoundModal: React.FC<AddSoundModalProps> = ({ onClose, onAdd }) => {
 
           <div className="space-y-6 pt-4">
             <div className="p-6 bg-slate-800/50 border border-slate-700 rounded-3xl space-y-4">
-              <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 text-center">Preview Output</h4>
-              <button 
-                onClick={handleTestSound}
-                className="w-full py-6 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-black text-xs uppercase tracking-widest flex flex-col items-center justify-center gap-3 transition-all active:scale-95 border border-slate-700 group"
-              >
-                <div className="w-12 h-12 bg-orange-500 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
-                   <Play size={20} fill="currentColor" />
-                </div>
-                Trigger Hit
-              </button>
+              <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 text-center">Preview & Tools</h4>
+              <div className="grid grid-cols-2 gap-3">
+                <button 
+                  onClick={handleRandomize}
+                  className="py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest flex flex-col items-center justify-center gap-2 transition-all active:scale-95 border border-slate-700 group"
+                >
+                  <Shuffle size={16} />
+                  Randomize
+                </button>
+                <button 
+                  onClick={handleTestSound}
+                  className="py-4 bg-slate-800 hover:bg-slate-700 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest flex flex-col items-center justify-center gap-2 transition-all active:scale-95 border border-slate-700 group"
+                >
+                  <Play size={16} fill="currentColor" />
+                  Trigger
+                </button>
+              </div>
             </div>
 
             <button 

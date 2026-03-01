@@ -19,3 +19,12 @@ export const DRUM_KIT: DrumKit[] = [
 
 export const INITIAL_BPM = 120;
 export const INITIAL_VOLUME = -12; // dB
+
+export const RANDOM_NAMES = [
+  "Cyber Kick", "Neon Snap", "Void Thud", "Plasma Pop", "Echo Strike", 
+  "Pulse Wave", "Ghost Click", "Rust Hit", "Velvet Clap", "Glitch Zap",
+  "Solar Flare", "Deep Space", "Quartz Hit", "Carbon Snap", "Ion Blast",
+  "Sub Boom", "Metal Clang", "Static Pop", "Laser Hit", "Grain Snare"
+];
+
+export const RANDOM_EMOJIS = ["⚡", "🥁", "🔮", "🧨", "🛸", "👾", "🌌", "💎", "🌋", "🌀", "🛰️", "🛸", "☄️", "🌈", "🔥", "💥", "☄️", "🌟", "✨", "🪐"];

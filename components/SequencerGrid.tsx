@@ -1,6 +1,6 @@
 
 import React, { useRef, useState } from 'react';
-import { Settings2, GripVertical, ChevronDown, Volume2, VolumeX, MousePointer2, Move, Target, ArrowRight, ArrowLeft, Plus, Trash2, Magnet } from 'lucide-react';
+import { Settings2, GripVertical, ChevronDown, Volume2, VolumeX, MousePointer2, Move, Target, ArrowRight, ArrowLeft, Plus, Trash2, Magnet, Eraser } from 'lucide-react';
 import { MAX_STEPS, MIN_STEPS } from '../constants';
 import { DrumKit } from '../types';
 import Knob from './Knob';
@@ -28,6 +28,7 @@ interface SequencerGridProps {
   onUpdateRowSteps: (index: number, steps: number) => void;
   onUpdateGlobalSteps: (steps: number) => void;
   onToggleRowDirection: (index: number) => void;
+  onClearTrack: (index: number) => void;
   onAddTrack: () => void;
   activeEditIndex: number | null;
   activeSwingEditRow: number | null;
@@ -57,6 +58,7 @@ const SequencerGrid: React.FC<SequencerGridProps> = ({
   onUpdateRowSteps,
   onUpdateGlobalSteps,
   onToggleRowDirection,
+  onClearTrack,
   onAddTrack,
   activeEditIndex,
   activeSwingEditRow,
@@ -294,9 +296,14 @@ const SequencerGrid: React.FC<SequencerGridProps> = ({
                     <span className="text-lg ml-1">{drum.emoji}</span>
                     <span className="text-[10px] uppercase font-black tracking-widest text-slate-400 truncate flex-grow min-w-0">{drum.name}</span>
                     
-                    <button onClick={() => onRemoveTrack(rowIndex)} className="p-1 rounded-lg transition-all bg-slate-800/40 text-slate-600 hover:text-red-400 hover:bg-red-500/10">
-                      <Trash2 size={12} />
-                    </button>
+                    <div className="flex flex-col gap-1">
+                      <button onClick={() => onClearTrack(rowIndex)} className="p-1 rounded-lg transition-all bg-slate-800/40 text-slate-600 hover:text-orange-400 hover:bg-orange-500/10" title="Clear Track">
+                        <Eraser size={12} />
+                      </button>
+                      <button onClick={() => onRemoveTrack(rowIndex)} className="p-1 rounded-lg transition-all bg-slate-800/40 text-slate-600 hover:text-red-400 hover:bg-red-500/10" title="Delete Track">
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Step Grid Container */}
@@ -311,7 +318,7 @@ const SequencerGrid: React.FC<SequencerGridProps> = ({
                         currentLocalStep = (rSteps - 1) - currentLocalStep;
                       }
                       
-                      const isCurrentRowStep = currentStep !== -1 && currentLocalStep === colIndex;
+                      const isCurrentRowStep = currentLocalStep === colIndex;
                       const isWithinLoop = colIndex < rSteps;
                       const isBeat = colIndex % 4 === 0;
                       const selected = isCellSelected(rowIndex, colIndex);

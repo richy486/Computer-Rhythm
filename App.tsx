@@ -40,7 +40,7 @@ const App: React.FC = () => {
   const [volume, setVolume] = useState(INITIAL_VOLUME);
   const [audioEnabled, setAudioEnabled] = useState(true);
   const [midiEnabled, setMidiEnabled] = useState(true);
-  const [absoluteStep, setAbsoluteStep] = useState(-1);
+  const [absoluteStep, setAbsoluteStep] = useState(0);
   const [isEngineStarted, setIsEngineStarted] = useState(false);
   const [activeEditIndex, setActiveEditIndex] = useState<number | null>(null);
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
@@ -257,7 +257,6 @@ const App: React.FC = () => {
     }
     else { 
       Tone.getTransport().pause(); 
-      setAbsoluteStep(-1); 
       if (isRecording) handleStopRecording();
     }
     setIsPlaying(!isPlaying);
@@ -444,6 +443,12 @@ const App: React.FC = () => {
     return { ...p, rowDirections: newDirections, rowOffsets: newRowOffsets };
   });
 
+  const handleClearTrack = (i: number) => updateCurrentPage(p => {
+    const newGrid = [...p.grid];
+    newGrid[i] = newGrid[i].map(() => 0);
+    return { ...p, grid: newGrid };
+  });
+
   const handleGlobalStepsChange = (newGlobal: number) => updateCurrentPage(p => {
     const currentGlobal = isPlaying ? absoluteStepRef.current : 0;
     const oldGlobal = p.globalSteps;
@@ -610,7 +615,7 @@ const App: React.FC = () => {
     setMidiEnabled(true);
     setAllDrumParams(initialParams);
     setMutes(initialMutes);
-    setAbsoluteStep(-1);
+    setAbsoluteStep(0);
     localStepRef.current = 0;
     if (isEngineStarted) {
       audioService.setBPM(INITIAL_BPM);
@@ -857,6 +862,7 @@ const App: React.FC = () => {
               onUpdateRowSteps={handleUpdateRowSteps}
               onUpdateGlobalSteps={handleGlobalStepsChange}
               onToggleRowDirection={handleToggleRowDirection}
+              onClearTrack={handleClearTrack}
               onAddTrack={() => setIsAddSoundModalOpen(true)}
               activeEditIndex={activeEditIndex}
               activeSwingEditRow={activeSwingEditRow}
