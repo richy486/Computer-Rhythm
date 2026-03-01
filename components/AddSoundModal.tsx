@@ -20,6 +20,7 @@ const AddSoundModal: React.FC<AddSoundModalProps> = ({ onClose, onAdd }) => {
   const [name, setName] = useState('');
   const [emoji, setEmoji] = useState('');
   const [synthType, setSynthType] = useState<SynthType>('membrane');
+  const [sampleUrl, setSampleUrl] = useState<string | undefined>();
   const [params, setParams] = useState<DrumParams>({
     pitch: 1,
     attack: 0.001,
@@ -45,14 +46,19 @@ const AddSoundModal: React.FC<AddSoundModalProps> = ({ onClose, onAdd }) => {
   const handleTestSound = async () => {
     if (Tone.getContext().state !== 'running') await Tone.start();
     const tempId = 'temp-preview';
-    audioService.createSynth(tempId, synthType, {
-      envelope: {
-        attack: params.attack,
-        decay: params.decay,
-        sustain: params.sustain,
-        release: params.release
-      }
-    });
+    
+    if (synthType === 'sample' && sampleUrl) {
+      await audioService.createSample(tempId, sampleUrl);
+    } else {
+      audioService.createSynth(tempId, synthType, {
+        envelope: {
+          attack: params.attack,
+          decay: params.decay,
+          sustain: params.sustain,
+          release: params.release
+        }
+      });
+    }
     // Apply parameters before triggering
     audioService.updateParameter(tempId, 'pitch', params.pitch);
     audioService.trigger(tempId, Tone.now(), { pitch: params.pitch });
@@ -66,7 +72,8 @@ const AddSoundModal: React.FC<AddSoundModalProps> = ({ onClose, onAdd }) => {
       emoji,
       midiNote: 60,
       color: 'bg-orange-400',
-      synthType
+      synthType,
+      sampleUrl
     };
     onAdd(newKit, params);
   };
@@ -104,10 +111,12 @@ const AddSoundModal: React.FC<AddSoundModalProps> = ({ onClose, onAdd }) => {
             name={name}
             emoji={emoji}
             synthType={synthType}
+            sampleUrl={sampleUrl}
             params={params}
             onNameChange={setName}
             onEmojiChange={setEmoji}
             onSynthTypeChange={setSynthType}
+            onSampleUrlChange={setSampleUrl}
             onParamsChange={setParams}
           />
 

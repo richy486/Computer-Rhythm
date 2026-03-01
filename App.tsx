@@ -165,7 +165,9 @@ const App: React.FC = () => {
     audioService.setVolume(volume);
 
     drumKit.forEach((drum, i) => {
-      if (drum.synthType) {
+      if (drum.synthType === 'sample' && drum.sampleUrl) {
+        audioService.createSample(drum.id, drum.sampleUrl);
+      } else if (drum.synthType) {
         audioService.createSynth(drum.id, drum.synthType);
       }
       const p = allDrumParams[i];
@@ -479,14 +481,18 @@ const App: React.FC = () => {
 
   const handleAddSound = (kit: DrumKit, params: DrumParams) => {
     if (isEngineStarted) {
-      audioService.createSynth(kit.id, kit.synthType || 'membrane', {
-        envelope: {
-          attack: params.attack,
-          decay: params.decay,
-          sustain: params.sustain,
-          release: params.release
-        }
-      });
+      if (kit.synthType === 'sample' && kit.sampleUrl) {
+        audioService.createSample(kit.id, kit.sampleUrl);
+      } else {
+        audioService.createSynth(kit.id, kit.synthType || 'membrane', {
+          envelope: {
+            attack: params.attack,
+            decay: params.decay,
+            sustain: params.sustain,
+            release: params.release
+          }
+        });
+      }
       audioService.updateParameter(kit.id, 'pitch', params.pitch);
     }
     

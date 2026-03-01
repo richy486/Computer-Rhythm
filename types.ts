@@ -1,5 +1,5 @@
 
-export type SynthType = 'membrane' | 'noise' | 'metal' | 'am' | 'fm' | 'duo';
+export type SynthType = 'membrane' | 'noise' | 'metal' | 'am' | 'fm' | 'duo' | 'sample';
 
 export interface DrumKit {
   id: string;
@@ -8,6 +8,7 @@ export interface DrumKit {
   midiNote: number;
   color: string;
   synthType?: SynthType;
+  sampleUrl?: string;
 }
 
 export interface DrumParams {

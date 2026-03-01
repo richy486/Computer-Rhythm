@@ -25,16 +25,27 @@ const DrumEditor: React.FC<DrumEditorProps> = ({ drum, params, onClose, onChange
 
   const handleSynthTypeChange = (newType: SynthType) => {
     onDrumUpdate(drum.id, { synthType: newType });
-    // Tell audio service to recreate the synth with new type
-    audioService.createSynth(drum.id, newType, {
-      envelope: {
-        attack: params.attack || 0.001,
-        decay: params.decay,
-        sustain: params.sustain || 0,
-        release: params.release || 0.1
-      }
-    });
+    if (newType === 'sample' && drum.sampleUrl) {
+      audioService.createSample(drum.id, drum.sampleUrl);
+    } else {
+      // Tell audio service to recreate the synth with new type
+      audioService.createSynth(drum.id, newType, {
+        envelope: {
+          attack: params.attack || 0.001,
+          decay: params.decay,
+          sustain: params.sustain || 0,
+          release: params.release || 0.1
+        }
+      });
+    }
     audioService.updateParameter(drum.id, 'pitch', params.pitch);
+  };
+
+  const handleSampleUrlChange = (url: string) => {
+    onDrumUpdate(drum.id, { sampleUrl: url });
+    if (drum.synthType === 'sample') {
+      audioService.createSample(drum.id, url);
+    }
   };
 
   const handleRandomize = () => {
@@ -90,10 +101,12 @@ const DrumEditor: React.FC<DrumEditorProps> = ({ drum, params, onClose, onChange
           name={drum.name}
           emoji={drum.emoji}
           synthType={drum.synthType || 'membrane'}
+          sampleUrl={drum.sampleUrl}
           params={params}
           onNameChange={(val) => onDrumUpdate(drum.id, { name: val })}
           onEmojiChange={(val) => onDrumUpdate(drum.id, { emoji: val })}
           onSynthTypeChange={handleSynthTypeChange}
+          onSampleUrlChange={handleSampleUrlChange}
           onParamsChange={onChange}
         />
 

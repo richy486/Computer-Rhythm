@@ -30,6 +30,30 @@ class AudioService {
     this.initialized = true;
   }
 
+  async createSample(id: string, url: string) {
+    if (this.synths[id]) {
+      this.synths[id].dispose();
+    }
+
+    return new Promise<void>((resolve, reject) => {
+      const player = new Tone.Player({
+        url: url,
+        autostart: false,
+        onload: () => {
+          if (this.mainOutput) {
+            player.connect(this.mainOutput);
+          }
+          this.synths[id] = player;
+          resolve();
+        },
+        onerror: (err) => {
+          console.error(`Failed to load sample for ${id}:`, err);
+          reject(err);
+        }
+      });
+    });
+  }
+
   createSynth(id: string, type: SynthType, options: any = {}) {
     if (this.synths[id]) {
       this.synths[id].dispose();
@@ -56,6 +80,11 @@ class AudioService {
         break;
       case 'duo':
         synth = new Tone.DuoSynth(options);
+        break;
+      case 'sample':
+        // For samples, we use createSample which is async. 
+        // This is a fallback if called synchronously.
+        synth = new Tone.MembraneSynth(options);
         break;
       default:
         synth = new Tone.MembraneSynth(options);
@@ -85,6 +114,9 @@ class AudioService {
         synth.frequency.value = 50 + (value * 975);
       } else if (synth instanceof Tone.MembraneSynth) {
         synth.octaves = 0.5 + (value * 7.5);
+      } else if (synth instanceof Tone.Player) {
+        // For Player, pitch can be simulated with playbackRate
+        synth.playbackRate = 0.5 + (value * 1.5);
       } else if ('frequency' in synth && synth.frequency instanceof Tone.Signal) {
         synth.frequency.value = 40 + (value * 2000);
       }
@@ -114,6 +146,9 @@ class AudioService {
       }
       else if (synth instanceof Tone.MetalSynth) {
         synth.triggerAttackRelease('32n', hitTime);
+      }
+      else if (synth instanceof Tone.Player) {
+        synth.start(hitTime);
       }
       // Use property check instead of 'instanceof Tone.Monophonic' as it is not exported as a member
       else if (synth && 'frequency' in synth && typeof synth.triggerAttackRelease === 'function') {

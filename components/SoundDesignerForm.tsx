@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Music, Waves, Activity, Zap, Layers, Sparkles, Loader2, Info } from 'lucide-react';
+import { Music, Waves, Activity, Zap, Layers, Sparkles, Loader2, Info, FileAudio, Plus } from 'lucide-react';
 import { SynthType, DrumParams, DrumKit } from '../types';
 import { GoogleGenAI, Type } from "@google/genai";
 import { isGeminiEnabled } from '../src/utils/featureFlags';
@@ -12,16 +12,19 @@ export const SYNTH_TYPES: { id: SynthType; name: string; icon: any }[] = [
   { id: 'fm', name: 'FM', icon: Layers },
   { id: 'am', name: 'AM', icon: Layers },
   { id: 'duo', name: 'Duo', icon: Music },
+  { id: 'sample', name: 'Sample', icon: FileAudio },
 ];
 
 interface SoundDesignerFormProps {
   name: string;
   emoji: string;
   synthType: SynthType;
+  sampleUrl?: string;
   params: DrumParams;
   onNameChange: (val: string) => void;
   onEmojiChange: (val: string) => void;
   onSynthTypeChange: (val: SynthType) => void;
+  onSampleUrlChange?: (url: string) => void;
   onParamsChange: (params: DrumParams) => void;
   compact?: boolean;
 }
@@ -30,18 +33,45 @@ const SoundDesignerForm: React.FC<SoundDesignerFormProps> = ({
   name,
   emoji,
   synthType,
+  sampleUrl,
   params,
   onNameChange,
   onEmojiChange,
   onSynthTypeChange,
+  onSampleUrlChange,
   onParamsChange,
   compact = false
 }) => {
   const [prompt, setPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const updateParam = (key: keyof DrumParams, val: number) => {
     onParamsChange({ ...params, [key]: val });
+  };
+
+  const handleFile = (file: File) => {
+    if (file && onSampleUrlChange) {
+      const url = URL.createObjectURL(file);
+      onSampleUrlChange(url);
+      if (!name) onNameChange(file.name.split('.')[0]);
+    }
+  };
+
+  const onDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const onDragLeave = () => {
+    setIsDragging(false);
+  };
+
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleFile(file);
   };
 
   const handleGeminiGenerate = async () => {
@@ -202,6 +232,61 @@ const SoundDesignerForm: React.FC<SoundDesignerFormProps> = ({
           ))}
         </div>
       </div>
+
+      {/* Sample Upload Section */}
+      {synthType === 'sample' && (
+        <div className="space-y-2 p-4 bg-slate-800/50 border border-slate-700 rounded-2xl animate-in fade-in slide-in-from-top-2 duration-200">
+          <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+            <FileAudio size={12} /> Sample Source
+          </label>
+          <div className="space-y-3">
+            <div className="flex flex-col gap-2">
+              <input
+                type="file"
+                accept="audio/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) handleFile(file);
+                }}
+                className="hidden"
+                id="sample-upload"
+              />
+              <label
+                htmlFor="sample-upload"
+                onDragOver={onDragOver}
+                onDragLeave={onDragLeave}
+                onDrop={onDrop}
+                className={`w-full py-3 bg-slate-900 border border-dashed rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer ${
+                  isDragging 
+                  ? 'border-orange-500 bg-orange-500/10 text-orange-500 scale-[1.02]' 
+                  : 'border-slate-700 text-slate-400 hover:text-white hover:border-orange-500/50'
+                }`}
+              >
+                <Plus size={14} className={isDragging ? 'animate-bounce' : ''} /> 
+                {isDragging ? 'Drop to Upload' : 'Upload Audio File'}
+              </label>
+              {sampleUrl && (
+                <div className="px-3 py-2 bg-slate-950/50 rounded-lg border border-slate-800 flex items-center justify-between">
+                  <span className="text-[9px] font-mono text-slate-500 truncate max-w-[180px]">
+                    {sampleUrl.startsWith('blob:') ? 'Local File Loaded' : sampleUrl}
+                  </span>
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
+                </div>
+              )}
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-[8px] text-slate-600 uppercase font-bold tracking-tighter">Or use URL</span>
+              <input
+                type="text"
+                value={sampleUrl || ''}
+                onChange={(e) => onSampleUrlChange?.(e.target.value)}
+                placeholder="https://example.com/sample.wav"
+                className="w-full h-8 bg-slate-900 border border-slate-800 rounded-lg px-2 text-[10px] text-slate-400 focus:border-orange-500 outline-none transition-all"
+              />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Controls Grid */}
       <div className="space-y-4">
