@@ -161,6 +161,8 @@ const App: React.FC = () => {
 
   const handleStartEngine = async () => {
     await audioService.init();
+    // Increase lookahead to handle negative swing and jitter better
+    Tone.context.lookAhead = 0.15;
     audioService.setBPM(bpm);
     audioService.setVolume(volume);
 
@@ -190,6 +192,13 @@ const App: React.FC = () => {
     const sequence = new Tone.Sequence((time, _) => {
       const currentPage = pagesRef.current[playingPageIndexRef.current];
       const step = localStepRef.current;
+      
+      // Capture stable time references for this step to prevent jitter
+      const now = Tone.now();
+      const perfNow = performance.now();
+      const clockOffset = perfNow - (now * 1000);
+      const stepDuration = Tone.Time("16n").toSeconds();
+
       Tone.getDraw().schedule(() => setAbsoluteStep(step), time);
       
       currentPage.grid.forEach((row, rowIndex) => {
@@ -211,12 +220,26 @@ const App: React.FC = () => {
           const isSwingTarget = currentPage.swingTargets?.[rowIndex]?.[actualStep] ?? false;
           if (isSwingTarget) {
             const swing = currentPage.rowSwings[rowIndex] || 0;
-            const swingOffset = swing * (Tone.Time("16n").toSeconds() * 0.4);
+            const swingOffset = swing * (stepDuration * 0.4);
             triggerTime += swingOffset;
           }
 
           if (audioEnabledRef.current) audioService.trigger(drum.id, triggerTime, { pitch: params.pitch, ratchet: ratchetCount });
-          if (midiEnabledRef.current) midiService.sendNoteOn(drum.midiNote);
+          
+          if (midiEnabledRef.current) {
+            // Convert Tone.js time (seconds) to MIDI timestamp (milliseconds since performance.now())
+            // Using a stable clock offset captured at the start of the callback
+            const midiTime = (triggerTime * 1000) + clockOffset;
+            
+            if (ratchetCount > 1) {
+              const ratchetInterval = stepDuration / ratchetCount;
+              for (let i = 0; i < ratchetCount; i++) {
+                midiService.sendNoteOn(drum.midiNote, 100, 0, midiTime + (i * ratchetInterval * 1000));
+              }
+            } else {
+              midiService.sendNoteOn(drum.midiNote, 100, 0, midiTime);
+            }
+          }
         }
       });
 
