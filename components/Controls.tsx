@@ -55,7 +55,7 @@ const Controls: React.FC<ControlsProps> = ({
   onResetPlayhead
 }) => {
   return (
-    <div className="bg-slate-900/90 backdrop-blur-xl p-6 rounded-2xl border border-slate-800 flex flex-wrap items-center justify-between gap-6 shadow-2xl">
+    <div className="bg-slate-900/90 backdrop-blur-xl p-6 rounded-2xl border border-slate-800 flex flex-wrap items-center justify-start gap-6 shadow-2xl w-fit">
       {/* Transport */}
       <div className="flex items-center gap-4">
         <button
@@ -169,7 +169,7 @@ const Controls: React.FC<ControlsProps> = ({
       </div>
 
       {/* BPM */}
-      <div className="flex flex-col gap-1 flex-grow max-w-[140px]">
+      <div className="flex flex-col gap-1 w-32">
         <div className="flex justify-between items-center px-1">
           <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Tempo</span>
           <span className="text-xs font-mono font-bold text-orange-400">{bpm}</span>
@@ -185,7 +185,7 @@ const Controls: React.FC<ControlsProps> = ({
       </div>
 
       {/* Volume */}
-      <div className="flex flex-col gap-1 flex-grow max-w-[140px]">
+      <div className="flex flex-col gap-1 w-32">
         <div className="flex justify-between items-center px-1">
            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-1">
              <Volume2 size={12} /> Volume

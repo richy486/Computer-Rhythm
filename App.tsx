@@ -707,7 +707,7 @@ const App: React.FC = () => {
   const activePage = pages[activePageIndex];
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 md:p-8 bg-[#0b1121] text-slate-100 selection:bg-orange-500/30 font-sans">
+    <div className="min-h-screen flex flex-col p-2 md:p-4 bg-[#0b1121] text-slate-100 selection:bg-orange-500/30 font-sans">
       {!isEngineStarted && (
         <div className="fixed inset-0 z-[100] bg-[#0b1121]/95 backdrop-blur-xl flex flex-col items-center justify-center p-6 text-center">
           <div className="w-24 h-24 bg-orange-500 rounded-[2rem] flex items-center justify-center shadow-2xl shadow-orange-500/40 mb-8 animate-bounce">
@@ -820,7 +820,7 @@ const App: React.FC = () => {
         />
       )}
 
-      <header className="w-full max-w-6xl flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
+      <header className="w-full flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 bg-orange-500 rounded-xl flex items-center justify-center shadow-lg shadow-orange-500/20"><Music className="text-white" size={28} /></div>
           <div>
@@ -844,8 +844,8 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      <main className="w-full max-w-6xl flex flex-col lg:flex-row gap-8">
-        <div className="flex-grow space-y-4 overflow-hidden">
+      <main className="w-full flex flex-col lg:flex-row gap-8">
+        <div className="flex-grow space-y-4">
           <HelpPanel isVisible={showHelp} />
           
           <SequencerTabs 
@@ -861,7 +861,7 @@ const App: React.FC = () => {
             onDuplicatePage={handleDuplicatePage}
           />
 
-          <section className="bg-slate-900/40 p-6 md:p-8 rounded-[2.5rem] border border-slate-800/60 shadow-2xl backdrop-blur-sm relative overflow-hidden">
+          <section className="bg-slate-900/40 p-6 md:p-8 rounded-[2.5rem] border border-slate-800/60 shadow-2xl backdrop-blur-sm relative">
             <SequencerGrid 
               drumKit={drumKit}
               grid={activePage.grid} 
@@ -893,7 +893,7 @@ const App: React.FC = () => {
             />
           </section>
 
-          <section className="sticky bottom-8 z-20 w-full mt-8 flex flex-col gap-4">
+          <section className="sticky bottom-8 z-20 w-full mt-8 flex flex-col items-start gap-4">
              <Controls 
                isPlaying={isPlaying} bpm={bpm} volume={volume} steps={activePage.globalSteps}
                audioEnabled={audioEnabled} midiEnabled={midiEnabled}
@@ -920,27 +920,34 @@ const App: React.FC = () => {
                onResetPlayhead={handleResetPlayhead}
              />
              {isGeminiEnabled() && (
-               <PatternGenerator 
-                 isEngineStarted={isEngineStarted}
-                 onGenerate={handleGenerateAIPattern}
-                 currentBpm={bpm}
-                 currentKit={drumKit}
-                 currentGrid={activePage.grid}
-               />
+               <div className="w-full flex justify-start">
+                 <PatternGenerator 
+                   isEngineStarted={isEngineStarted}
+                   onGenerate={handleGenerateAIPattern}
+                   currentBpm={bpm}
+                   currentKit={drumKit}
+                   currentGrid={activePage.grid}
+                 />
+               </div>
              )}
           </section>
         </div>
 
         {activeEditIndex !== null && (
-          <aside className="lg:w-80 shrink-0">
-            <DrumEditor 
-              drum={drumKit[activeEditIndex]}
-              params={allDrumParams[activeEditIndex]}
-              onClose={() => setActiveEditIndex(null)}
-              onChange={(p) => handleUpdateDrumParams(activeEditIndex, p)}
-              onDrumUpdate={handleDrumMetadataUpdate}
-            />
-          </aside>
+          <div 
+            className="fixed inset-0 z-[160] flex items-center justify-center p-4 bg-[#0b1121]/80 backdrop-blur-md"
+            onClick={() => setActiveEditIndex(null)}
+          >
+            <div className="max-w-xl w-full" onClick={e => e.stopPropagation()}>
+              <DrumEditor 
+                drum={drumKit[activeEditIndex]}
+                params={allDrumParams[activeEditIndex]}
+                onClose={() => setActiveEditIndex(null)}
+                onChange={(p) => handleUpdateDrumParams(activeEditIndex, p)}
+                onDrumUpdate={handleDrumMetadataUpdate}
+              />
+            </div>
+          </div>
         )}
       </main>
     </div>

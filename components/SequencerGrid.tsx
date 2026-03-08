@@ -235,17 +235,17 @@ const SequencerGrid: React.FC<SequencerGridProps> = ({
       </div>
 
       <div className="flex flex-col gap-2 w-full overflow-x-auto pb-4 custom-scrollbar relative" ref={containerRef} onPointerDown={handlePointerDown} onPointerMove={handlePointerMove} onPointerUp={handlePointerUp} onPointerLeave={handlePointerUp} style={{ touchAction: 'none' }}>
-        <div className="flex flex-col gap-2 relative" style={{ minWidth: `${MAX_STEPS * 36 + 260}px` }}>
+        <div className="flex flex-col gap-2 relative" style={{ minWidth: `${MAX_STEPS * 44 + 260}px` }}>
           
-          <div className="flex items-end gap-3 h-6 mb-1 pr-16 relative">
-            <div className="w-56 flex-shrink-0 flex items-center justify-end pr-2">
+          <div className="flex items-end gap-1 h-6 mb-1 pr-16 relative">
+            <div className="w-56 flex-shrink-0 flex items-center justify-end pr-2 sticky left-0 bg-[#0b1121] z-40">
               <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Steps</span>
             </div>
-            <div className="flex gap-1 flex-grow relative">
+            <div className="flex gap-1 relative">
               {Array.from({ length: MAX_STEPS }).map((_, colIndex) => {
                 const isBeatStart = colIndex % 4 === 0;
                 return (
-                  <div key={`header-${colIndex}`} className="w-full flex flex-col items-center justify-end relative">
+                  <div key={`header-${colIndex}`} className="w-10 flex-shrink-0 flex flex-col items-center justify-end relative">
                     <span className={`text-[8px] font-mono leading-none ${isBeatStart ? 'text-slate-300' : 'text-slate-600'}`}>
                       {colIndex + 1}
                     </span>
@@ -267,7 +267,7 @@ const SequencerGrid: React.FC<SequencerGridProps> = ({
               return (
                 <div key={drum.id} className={`flex items-center gap-3 group/row transition-opacity mb-2 relative z-10 ${isMuted ? 'opacity-50' : 'opacity-100'}`}>
                   {/* Track Header with Controls */}
-                  <div className="w-56 flex items-center gap-2 flex-shrink-0">
+                  <div className="w-56 flex items-center gap-2 flex-shrink-0 sticky left-0 bg-[#0b1121] z-40">
                     <button onClick={() => onToggleMute(rowIndex)} className={`p-1 rounded-lg transition-all ${isMuted ? 'bg-red-500/20 text-red-500 border border-red-500/30' : 'bg-slate-800 text-slate-500 hover:text-white hover:bg-slate-700'}`}>
                       {isMuted ? <VolumeX size={12} /> : <Volume2 size={12} />}
                     </button>
@@ -307,7 +307,7 @@ const SequencerGrid: React.FC<SequencerGridProps> = ({
                   </div>
 
                   {/* Step Grid Container */}
-                  <div className="flex gap-1 flex-grow relative steps-container mr-16">
+                  <div className="flex gap-1 relative steps-container mr-16">
                     {Array.from({ length: MAX_STEPS }).map((_, colIndex) => {
                       const ratchetCount = grid[rowIndex][colIndex];
                       const isActive = ratchetCount > 0;
@@ -334,7 +334,7 @@ const SequencerGrid: React.FC<SequencerGridProps> = ({
                       }
 
                       return (
-                        <div key={`${rowIndex}-${colIndex}`} className="w-full h-10 relative">
+                        <div key={`${rowIndex}-${colIndex}`} className="w-10 h-10 flex-shrink-0 relative">
                           {/* Static Playhead Indicator (White Line) */}
                           {isCurrentRowStep && isWithinLoop && (
                             <div className="absolute inset-x-0 bottom-0 h-1 bg-white z-30 pointer-events-none rounded-full shadow-[0_0_8px_rgba(255,255,255,0.5)]" />
@@ -405,7 +405,7 @@ const SequencerGrid: React.FC<SequencerGridProps> = ({
           </div>
 
           <div className="flex items-center gap-3 mt-4 mb-2 pr-16">
-            <div className="w-56 flex-shrink-0 flex items-center justify-center pt-2">
+            <div className="w-56 flex-shrink-0 flex items-center justify-center pt-2 sticky left-0 bg-[#0b1121] z-40">
               <button 
                 onClick={onAddTrack}
                 className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-slate-800/40 border border-dashed border-slate-700 hover:border-orange-500/40 hover:text-orange-400 hover:bg-slate-800 transition-all text-[10px] font-black uppercase tracking-widest w-full text-slate-500"
@@ -416,10 +416,10 @@ const SequencerGrid: React.FC<SequencerGridProps> = ({
           </div>
 
           <div className="flex items-center gap-3 mt-6 mb-2 relative group/timeline mr-16">
-            <div className="w-56 flex-shrink-0 flex items-center justify-end px-2">
+            <div className="w-56 flex-shrink-0 flex items-center justify-end px-2 sticky left-0 bg-[#0b1121] z-40">
               <span className="text-[10px] font-black uppercase tracking-widest text-slate-600">Timeline</span>
             </div>
-            <div className="flex gap-1 flex-grow relative h-6 bg-slate-900/40 rounded-full items-center px-1">
+            <div className="flex gap-1 relative h-6 bg-slate-900/40 rounded-full items-center px-1" style={{ width: `${MAX_STEPS * 44 - 4}px` }}>
               <div className="absolute left-1 h-1 bg-slate-500/10 rounded-full" style={{ width: `calc(${(globalSteps / MAX_STEPS) * 100}%)` }} />
               
               <div className="absolute top-1/2 -translate-y-1/2 -ml-2 w-6 h-6 z-30 cursor-col-resize flex items-center justify-center rounded-full bg-slate-800 border-2 border-slate-500 shadow-lg" style={{ left: `${(globalSteps / MAX_STEPS) * 100}%` }} onPointerDown={(e) => { e.stopPropagation(); setDraggingIndex(-1); (e.target as Element).setPointerCapture(e.pointerId); }}>

@@ -86,7 +86,7 @@ const DrumEditor: React.FC<DrumEditorProps> = ({ drum, params, onClose, onChange
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-700 rounded-3xl p-6 w-full md:w-80 shadow-2xl animate-in slide-in-from-right-4 duration-200 h-fit max-h-[calc(100vh-100px)] overflow-y-auto custom-scrollbar">
+    <div className="bg-slate-900 border border-slate-700 rounded-3xl p-6 w-full shadow-2xl animate-in zoom-in-95 fade-in duration-200 h-fit max-h-[calc(100vh-100px)] overflow-y-auto custom-scrollbar">
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center text-lg">{drum.emoji}</div>
@@ -102,7 +102,6 @@ const DrumEditor: React.FC<DrumEditorProps> = ({ drum, params, onClose, onChange
 
       <div className="space-y-6">
         <SoundDesignerForm 
-          compact
           name={drum.name}
           emoji={drum.emoji}
           synthType={drum.synthType || 'membrane'}
