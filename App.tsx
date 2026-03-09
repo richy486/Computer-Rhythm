@@ -11,6 +11,7 @@ import AddSoundModal from './components/AddSoundModal';
 import PatternGenerator, { GeneratedPattern } from './components/PatternGenerator';
 import { audioService } from './services/audioService';
 import { midiService } from './services/midiService';
+import { audioTimeToPerformanceTime } from './services/midiTimingUtils';
 import { DRUM_KIT, INITIAL_STEPS, ROWS, INITIAL_BPM, INITIAL_VOLUME, MAX_STEPS } from './constants';
 import { isGeminiEnabled } from './src/utils/featureFlags';
 import { DrumKit, DrumParams, ProjectState, Page } from './types';
@@ -79,12 +80,13 @@ const App: React.FC = () => {
   const midiEnabledRef = useRef(midiEnabled);
   const paramsRef = useRef(allDrumParams);
   const mutesRef = useRef(mutes);
-  const sequenceRef = useRef<Tone.Sequence<number> | null>(null);
+  const sequenceRef = useRef<number | null>(null);
   const absoluteStepRef = useRef(-1);
   const localStepRef = useRef(0);
   const isRecordingRef = useRef(isRecording);
   const loopsToRecordRef = useRef(loopsToRecord);
   const currentLoopCountRef = useRef(currentLoopCount);
+  const lastCallbackTimeRef = useRef<number>(-1);
 
   useEffect(() => { drumKitRef.current = drumKit; }, [drumKit]);
   useEffect(() => { pagesRef.current = pages; }, [pages]);
@@ -162,7 +164,7 @@ const App: React.FC = () => {
   const handleStartEngine = async () => {
     await audioService.init();
     // Increase lookahead to handle negative swing and jitter better
-    Tone.context.lookAhead = 0.15;
+    Tone.context.lookAhead = 0.35;
     audioService.setBPM(bpm);
     audioService.setVolume(volume);
 
@@ -189,14 +191,15 @@ const App: React.FC = () => {
 
     setIsEngineStarted(true);
     
-    const sequence = new Tone.Sequence((time, _) => {
+    const eventId = Tone.getTransport().scheduleRepeat((time) => {
+      // Deduplication guard: Tone.js can fire duplicate callbacks at certain
+      // transport positions. Skip any callback within 5ms of the last one.
+      if (time - lastCallbackTimeRef.current < 0.005) return;
+      lastCallbackTimeRef.current = time;
+
       const currentPage = pagesRef.current[playingPageIndexRef.current];
       const step = localStepRef.current;
       
-      // Capture stable time references for this step to prevent jitter
-      const now = Tone.now();
-      const perfNow = performance.now();
-      const clockOffset = perfNow - (now * 1000);
       const stepDuration = Tone.Time("16n").toSeconds();
 
       Tone.getDraw().schedule(() => setAbsoluteStep(step), time);
@@ -227,17 +230,24 @@ const App: React.FC = () => {
           if (audioEnabledRef.current) audioService.trigger(drum.id, triggerTime, { pitch: params.pitch, ratchet: ratchetCount });
           
           if (midiEnabledRef.current) {
-            // Convert Tone.js time (seconds) to MIDI timestamp (milliseconds since performance.now())
-            // Using a stable clock offset captured at the start of the callback
-            const midiTime = (triggerTime * 1000) + clockOffset;
-            
+            const audioCtx = (Tone.getContext() as any).rawContext as AudioContext;
+            const noteNum = drum.midiNote;
+            // Convert the Tone.js scheduled audio time to a performance.now() timestamp
+            // so the Web MIDI API can hardware-schedule the note with the same precision
+            // as the Web Audio engine — no setTimeout drift.
+            const targetPerfTime = audioTimeToPerformanceTime(
+              triggerTime,
+              audioCtx.currentTime,
+              performance.now()
+            );
+
             if (ratchetCount > 1) {
-              const ratchetInterval = stepDuration / ratchetCount;
+              const ratchetIntervalMs = (stepDuration / ratchetCount) * 1000;
               for (let i = 0; i < ratchetCount; i++) {
-                midiService.sendNoteOn(drum.midiNote, 100, 0, midiTime + (i * ratchetInterval * 1000));
+                midiService.sendNoteOnAt(noteNum, 100, 0, targetPerfTime + i * ratchetIntervalMs);
               }
             } else {
-              midiService.sendNoteOn(drum.midiNote, 100, 0, midiTime);
+              midiService.sendNoteOnAt(noteNum, 100, 0, targetPerfTime);
             }
           }
         }
@@ -266,10 +276,9 @@ const App: React.FC = () => {
           }, time);
         }
       }
-    }, [0], "16n");
-    
-    sequenceRef.current = sequence;
-    sequence.start(0);
+    }, "16n");
+
+    sequenceRef.current = eventId;
   };
 
   useEffect(() => { if (isEngineStarted) audioService.setBPM(bpm); }, [bpm, isEngineStarted]);
@@ -281,9 +290,10 @@ const App: React.FC = () => {
 
   const handleTogglePlay = useCallback(async () => {
     if (Tone.getContext().state !== 'running') await Tone.start();
-    if (!isPlaying) { 
-      localStepRef.current = 0; 
-      Tone.getTransport().start(); 
+    if (!isPlaying) {
+      localStepRef.current = 0;
+      lastCallbackTimeRef.current = -1;
+      Tone.getTransport().start();
     }
     else { 
       Tone.getTransport().pause(); 
@@ -319,6 +329,7 @@ const App: React.FC = () => {
     
     // Reset to start of loop
     localStepRef.current = 0;
+    lastCallbackTimeRef.current = -1;
     
     // Start recorder slightly before transport to catch the first transient
     audioService.startRecording();
